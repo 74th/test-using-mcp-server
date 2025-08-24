@@ -2,6 +2,140 @@
 
 https://github.com/oraios/serena
 
+## 雰囲気
+
+- 使おうとするとまずオンボーディングを始める
+  - コードスタイル、プロジェクトの構造などを調べ上げる
+  - 雰囲気ファイルリストレベル
+  - .serena/memories に書き出す
+- コードの変更でLSPを使ってくれるかと思いきや、replace_regexを多用する
+  - 確かに余計な変更はしないのかもしれない。
+- コードの解析に使っている
+  - 1回に1つの言語っぽくて、TypeScript、Python混載プロジェクトではPythonが無視された
+  - が、設定するとちゃんとシンボル検索できた
+- おそらく定期的に、路線変更の注入コマンドが叩かれる（think_about_task_adherence、タスクの遵守について考える）
+
+```
+応答の訳:
+
+現在のタスクから逸脱していませんか？作業を進めるために追加の情報が必要ですか？
+プロジェクトのコードスタイル、規約、ガイドラインと完全に一致しているかどうかを確認するために、関連するメモリファイルをすべて読み込みましたか？
+もしそうではない場合、コードベースにコードを修正する前に、実装を適切に調整してください。
+
+ユーザーに確認を求める方が、ユーザーの意図と一致しない大規模な変更を行うよりも良い点に注意してください。
+会話が元のタスクからあまりにも逸脱していると感じた場合は、謝罪し、ユーザーに
+進め方を提案してください。会話が長くなりすぎた場合は、現在の進捗の要約を作成し、ユーザーに
+その要約に基づいて新しい会話を開始するよう提案してください。
+```
+
+- シンボルから検索ができる
+
+**find_referencing_symbolxのtoolの実行結果**
+
+```
+{
+  "name_path": "MemDB",
+  "relative_path": "todo_api/memdb/memdb.py"
+}
+```
+
+```
+[{"name_path": "operations", "kind": "File", "body_location": {"start_line": 0, "end_line": 26}, "relative_path": "todo_api/domain/usecase/operations.py", "content_around_reference": "...   0:from todo_api.domain.entity.entity import WorkTask\n  >   1:from todo_api.memdb.memdb import MemDB\n...   2:"}, {"name_path": "OperationInteractor/__init__", "kind": "Method", "body_location": {"start_line": 5, "end_line": 6}, "relative_path": "todo_api/domain/usecase/operations.py", "content_around_reference": "...   4:class OperationInteractor:\n  >   5:    def __init__(self, memdb: MemDB):\n...   6:        self._db = memdb"}, {"name_path": "operations_test", "kind": "File", "body_location": {"start_line": 0, "end_line": 25}, "relative_path": "todo_api/domain/usecase/operations_test.py", "content_around_reference": "...   2:\n  >   3:from todo_api.memdb.memdb import MemDB\n...   4:from .operations import OperationInteractor"}, {"name_path": "OperationTest/test_task_work/db", "kind": "Variable", "body_location": {"start_line": 9, "end_line": 9}, "relative_path": "todo_api/domain/usecase/operations_test.py", "content_around_reference": "...   8:    def test_task_work(self):\n  >   9:        db = MemDB()\n...  10:        op = OperationInteractor(db)"}, {"name_path": "__init__", "kind": "File", "body_location": {"start_line": 0, "end_line": 1}, "relative_path": "todo_api/memdb/__init__.py", "content_around_reference": "  >   0:from .memdb import MemDB"}, {"name_path": "memdb_test", "kind": "File", "body_location": {"start_line": 0, "end_line": 31}, "relative_path": "todo_api/memdb/memdb_test.py", "content_around_reference": "...   3:\n  >   4:from .memdb import MemDB\n...   5:"}, {"name_path": "TestRepository/test_list_add/repo", "kind": "Variable", "body_location": {"start_line": 9, "end_line": 9}, "relative_path": "todo_api/memdb/memdb_test.py", "content_around_reference": "...   8:\n  >   9:        repo = MemDB()\n...  10:"}, {"name_path": "api", "kind": "File", "body_location": {"start_line": 0, "end_line": 88}, "relative_path": "todo_api/server/api.py", "content_around_reference": "...   7:\n  >   8:from todo_api.memdb.memdb import MemDB\n...   9:"}, {"name_path": "db", "kind": "Variable", "body_location": {"start_line": 17, "end_line": 17}, "relative_path": "todo_api/server/api.py", "content_around_reference": "...  16:\n  >  17:db = MemDB()\n...  18:op = OperationInteractor(db)"}]
+```
+
+- ファイルの変更方法が変わる
+  - replace_regex コマンドで、変更している。
+  - 認識できた後は replace_symbol_body もつかっているが、replace_regex をする方が多い
+  - どのくらい replace_symbol_body で変更できるかは不明
+
+**replace_symbol_bodyのインプット**
+
+```
+{
+  "name_path": "WorkTask",
+  "relative_path": "todo_api/domain/entity/entity.py",
+  "body": "class NormalTask(TypedDict):\n    id: Optional[int]\n    text: str\n    done: bool\n    expire: Optional[date]"
+}
+```
+
+
+## プロンプト
+
+---
+mode: agent
+tools: ['codebase', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'openSimpleBrowser', 'fetch', 'findTestFiles', 'searchResults', 'githubRepo', 'extensions', 'todos', 'runTests', 'editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'serena']
+---
+
+#serena PythonのTaskクラスの利用先を列挙して
+
+<pre>
+## PythonのTaskクラスの利用先一覧
+
+以下が Python の `Task` クラス（entity.py で定義）の全利用箇所です：
+
+### 1. 定義場所
+- **entity.py** (行4)
+  ```python
+  class Task(TypedDict):
+      id: Optional[int]
+      text: str
+      done: bool
+      expire: Optional[date]
+  ```
+
+### 2. エクスポート
+- **__init__.py** (行1)
+  ```python
+  from .entity import Task
+  ```
+
+### 3. データアクセス層（Repository）
+- **memdb.py** - 複数箇所で使用：
+  - 行3: `from todo_api.domain.entity import Task`
+  - 行11: `self._tasks: list[Task] = []` (フィールド定義)
+  - 行24: `def add(self, task: Task) -> int:` (引数)
+  - 行30: `def search_unfinished(self) -> list[Task]:` (戻り値)
+  - 行33: `def update(self, task:Task):` (引数)
+  - 行37: `def get(self, id: int) -> Optional[Task]:` (戻り値)
+
+### 4. ビジネスロジック層（Use Case）
+- **operations.py** - 複数箇所で使用：
+  - 行1: `from todo_api.domain.entity.entity import Task`
+  - 行9: `def show_tasks(self) -> list[Task]:` (戻り値)
+  - 行12: `def create_task(self, task: Task) -> Task:` (引数と戻り値)
+  - 行17: `def done_task(self, task_id: int)-> Task:` (戻り値)
+
+### 5. API層（Web Server）
+- **api.py** - 2箇所で使用：
+  - 行6: `from todo_api.domain.entity.entity import Task`
+  - 行54: `task = cast(Task, task_data)` (型キャスト)
+
+### 6. テストファイル
+- **memdb_test.py** - 2箇所で使用：
+  - 行3: `from todo_api.domain.entity.entity import Task`
+  - 行12: `new_id = repo.add(Task(...)` (インスタンス生成)
+
+- **operations_test.py** - 2箇所で使用：
+  - 行2: `from todo_api.domain.entity.entity import Task`
+  - 行17: `new_task = Task(...)` (インスタンス生成)
+
+### 利用パターンの分析
+
+1. **型注釈での使用**: 関数の引数、戻り値、フィールドの型として使用
+2. **インスタンス生成**: テストでのデータ作成時に使用
+3. **型キャスト**: API層での動的データの型安全性確保
+4. **レイヤー間の連携**: domain → usecase → memdb → server の各層で一貫して使用
+
+このTaskクラスは、アプリケーション全体のデータ構造の中心となっており、ドメイン駆動設計の原則に従って各層で適切に利用されています。
+</pre>
+
+## 次のプロンプト
+
+```
+TaskクラスをWorkTaskに名前を変えたい。
+#serena に、シンボルの変更をする機能はある？
+```
+
 
 ## 最初に表示されるプロンプトテキスト
 

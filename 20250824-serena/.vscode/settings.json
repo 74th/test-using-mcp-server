@@ -1,0 +1,18 @@
+{
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.languageServer": "Default",
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.extraPaths": [
+        "./todo_api"
+    ],
+    "pylsp.plugins.pycodestyle.enabled": false,
+    "pylsp.plugins.autopep8.enabled": false,
+    "pylsp.plugins.yapf.enabled": false,
+    "pylsp.plugins.rope_completion.enabled": true,
+    "pylsp.plugins.jedi_completion.enabled": true,
+    "pylsp.plugins.jedi_definition.enabled": true,
+    "pylsp.plugins.jedi_references.enabled": true,
+    "pylsp.plugins.jedi_symbols.enabled": true
+}

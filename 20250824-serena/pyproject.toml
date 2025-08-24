@@ -7,3 +7,9 @@ requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.1",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "python-lsp-server[all]>=1.7.0",
+    "pylsp-rope>=0.1.11",
+]

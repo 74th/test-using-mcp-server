@@ -1,0 +1,23 @@
+{
+    "include": [
+        "todo_api"
+    ],
+    "exclude": [
+        "**/__pycache__",
+        "**/.*"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.12",
+    "pythonPlatform": "Darwin",
+    "executionEnvironments": [
+        {
+            "root": ".",
+            "pythonVersion": "3.12",
+            "pythonPlatform": "Darwin",
+            "extraPaths": [
+                "./todo_api"
+            ]
+        }
+    ]
+}
