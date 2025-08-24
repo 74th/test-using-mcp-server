@@ -2,6 +2,8 @@
 
 https://github.com/oraios/serena
 
+- LSPの情報をエージェントに提供するツール
+
 ## 雰囲気
 
 - 使おうとするとまずオンボーディングを始める
