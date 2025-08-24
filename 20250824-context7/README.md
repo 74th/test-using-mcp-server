@@ -11,6 +11,7 @@ upstash社が提供するMCP Server。バージョン管理された最新ドキ
 - kubernetes、全然公式ドキュメント仕様じゃなくて、CHANGELOGSしか読んでない…
   - ID: /kubernetes/kubernetes はKubernetesのコードで、CHANGELOGSがメインに引っかかってr
   - ID: /websites/kubernetes_io の方がよさそう
+- Context7自体はAPIで、外部情報源で、ローカルで完結していないため、秘匿情報を送信する可能性がある
 
 VS Codeの場合は、拡張機能"Context7 MCP Server"をインストールするだけで使える。
 ドキュメント自体は外部にある。
