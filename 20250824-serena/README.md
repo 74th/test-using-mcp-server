@@ -61,6 +61,27 @@ https://github.com/oraios/serena
 }
 ```
 
+## 導入
+
+[.vscode/mcp.json](.vscode/mcp.json)
+
+```json
+{
+  "servers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server"
+      ],
+      "env": {}
+    }
+  }
+}
+```
+
 
 ## プロンプト
 
@@ -70,6 +91,8 @@ tools: ['codebase', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'test
 ---
 
 #serena PythonのTaskクラスの利用先を列挙して
+
+最初にオンボーディングを始めてた
 
 <pre>
 ## PythonのTaskクラスの利用先一覧
@@ -139,6 +162,7 @@ TaskクラスをWorkTaskに名前を変えたい。
 #serena に、シンボルの変更をする機能はある？
 ```
 
+この時、Pythonはシンボル検索がうまくいかなかったためか、正規表現検索を駆使していた。
 
 ## 最初に表示されるプロンプトテキスト
 
