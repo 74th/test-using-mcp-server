@@ -1,8 +1,445 @@
 # Context7
 
-upstash社が提供するMCP Server
+upstash社が提供するMCP Server。バージョン管理された最新ドキュメントをMCPに与えることができる。
+
+- スニペットと、仕様を返す
+  - が、スニペットが中心のように見える
+- 複数バージョン対応しているかまちまち。Python、Kubernetesは基本latestしかなさそう。
+- Streamlit、ApacheAirflowなど、プログラミング言語や仕様以外のアプリケーションのものある
+  - ApacheAirflowは複数バージョン対応している。
+- プライベートリポジトリを連携することもできる
+- kubernetes、全然公式ドキュメント仕様じゃなくて、CHANGELOGSしか読んでない…
+  - ID: /kubernetes/kubernetes はKubernetesのコードで、CHANGELOGSがメインに引っかかってr
+  - ID: /websites/kubernetes_io の方がよさそう
 
 VS Codeの場合は、拡張機能"Context7 MCP Server"をインストールするだけで使える。
 ドキュメント自体は外部にある。
+公式ドキュメントにはAPI Keyがあるが、API Keyなしでも使える。
 
-GitHub Copilot場合明、明示的に #context7 と指示しなければ基本使わない。
+GitHub Copilot場合明、明示的に #get-library-docs と指示しなければ基本使わない。
+
+## 試行1
+
+### prompt
+
+```
+---
+mode: agent
+tools: ['extensions', 'codebase', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'openSimpleBrowser', 'fetch', 'findTestFiles', 'searchResults', 'githubRepo', 'todos', 'editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'get-library-docs']
+---
+
+manifests/ ディレクトリに、以下のマニフェストを作って。
+
+- kustomize で管理して、1ファイルにつき1つのマニフェストと作成する。
+- nginx の Deployment を作成する
+- 40%のCPUでスケールさせる
+- Serviceには一旦ClusterIP、ポート番号13532で構築する
+
+Kubernetesのマニフェストを作るために #get-library-docs を使って、最新の情報を取得して。
+```
+
+
+まず、検索すべきドキュメントを #resolve-library-id で探してる。
+
+```
+{
+  "libraryName": "kubernetes"
+}
+```
+
+```
+Available Libraries (top matches):
+
+Each result includes:
+- Library ID: Context7-compatible identifier (format: /org/project)
+- Name: Library or package name
+- Description: Short summary
+- Code Snippets: Number of available code examples
+- Trust Score: Authority indicator
+- Versions: List of versions if available. Use one of those versions if and only if the user explicitly provides a version in their query.
+
+For best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.
+
+----------
+
+- Title: Kubernetes
+- Context7-compatible library ID: /websites/kubernetes_io
+- Description: Kubernetes is an open-source system for automating deployment, scaling, and management of containerized applications.
+- Code Snippets: 140961
+- Trust Score: 7.5
+----------
+- Title: Kubernetes Core
+- Context7-compatible library ID: /ansible-collections/kubernetes.core
+- Description: The kubernetes.core Ansible Collection automates the management of applications and clusters in Kubernetes and OpenShift environments.
+- Code Snippets: 473
+- Trust Score: 9
+----------
+- Title: Kubernetes
+- Context7-compatible library ID: /kubernetes/kubernetes
+- Description: Production-Grade Container Scheduling and Management
+- Code Snippets: 20623
+- Trust Score: 8.4
+- Versions: v1_32_8
+----------
+
+...
+```
+
+その後、#get-library-docs でドキュメントを取得する。
+
+```
+{
+  "context7CompatibleLibraryID": "/kubernetes/kubernetes",
+  "topic": "deployment hpa service kustomize manifests",
+  "tokens": 8000
+}
+```
+
+<pre>
+========================
+CODE SNIPPETS
+========================
+TITLE: HPA Scale Target Handling
+DESCRIPTION: HPA now ignores scale targets whose replica count is 0. This prevents unnecessary scaling operations when a deployment has no active replicas.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.4.md#_snippet_243
+
+LANGUAGE: go
+CODE:
+```
+HPA: ignore scale targets whose replica count is 0 ([#29212](https://github.com/kubernetes/kubernetes/pull/29212), [@sjenning](https://github.com/sjenning))
+```
+
+----------------------------------------
+
+TITLE: Horizontal Pod Autoscaler Global Metrics
+DESCRIPTION: Allows HorizontalPodAutoscaler (HPA) to utilize global metrics not tied to specific Kubernetes objects, enabling scaling based on external factors like hosting service load.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.10.md#_snippet_348
+
+LANGUAGE: go
+CODE:
+```
+package main
+
+import "fmt"
+
+func main() {
+	// Example of configuring HPA with global metrics
+	fmt.Println("Configuring HorizontalPodAutoscaler with global metrics...")
+
+	// In a real scenario, this would involve defining an HPA resource
+	// with metricsSource set to a global metric provider.
+
+	// Example HPA configuration snippet (conceptual YAML):
+	/*
+	apiVersion: autoscaling/v1
+	kind: HorizontalPodAutoscaler
+	metadata:
+	  name: my-app-hpa
+	spec:
+	  scaleTargetRef:
+		apiVersion: apps/v1
+		kind: Deployment
+		name: my-app
+	  minReplicas: 1
+	  maxReplicas: 10
+	  metrics:
+	  - type: Pods
+		s pods:
+		  metricName: cpu_utilization
+		  targetAverageUtilization: 50
+	  - type: Object
+			object:
+			  metricName: external_request_rate
+			  targetValue: 1000
+	*/
+
+	fmt.Println("HPA configured for global metrics.")
+}
+
+// Note: This is a conceptual example. Actual implementation involves Kubernetes API objects.
+// See https://github.com/kubernetes/kubernetes/pull/60096 for details.
+```
+
+----------------------------------------
+
+TITLE: Kustomize Patches for Static Pods
+DESCRIPTION: This entry describes the implementation of a feature allowing kustomize patches to be applied to static pod manifests generated by kubeadm.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.16.md#_snippet_244
+
+LANGUAGE: go
+CODE:
+```
+# Example of applying kustomize patches to static pod manifests
+# (Specific command/syntax depends on kustomize usage)
+```
+
+----------------------------------------
+
+TITLE: Kubernetes Cluster Federation API - Federated Horizontal Pod Autoscaling (HPA)
+DESCRIPTION: Details the alpha feature for Federated Horizontal Pod Autoscalers (HPAs). These span multiple clusters, ensuring consistent autoscaler deployment and optimal scaling within global replica constraints.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.8.md#_snippet_219
+
+LANGUAGE: APIDOC
+CODE:
+```
+FederatedHorizontalPodAutoscaler:
+  # Alpha feature
+  spec:
+    scaleTargetRef: CrossClusterObjectReference
+      # Reference to the scalable resource across clusters.
+    minReplicas: int
+    maxReplicas: int
+    # Global constraints on total replicas across all clusters.
+    # Dynamically manages replicas based on load and cluster capacity.
+```
+
+----------------------------------------
+
+TITLE: Kubeadm and Kustomize Integration
+DESCRIPTION: This snippet describes a new feature allowing kustomize patches to be applied to static pod manifests generated by kubeadm, and a change in CSR file permissions.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.16.md#_snippet_427
+
+LANGUAGE: yaml
+CODE:
+```
+Implement a new feature that allows applying kustomize patches to static pod manifests generated by kubeadm.  ([#80905](https://github.com/kubernetes/kubernetes/pull/80905), [@fabriziopandini](https://github.com/fabriziopandini))
+kubeadm: the permissions of generated CSR files are changed from 0644 to 0600 ([#81217](https://github.com/kubernetes/kubernetes/pull/81217), [@SataQiu](https://github.com/SataQiu))
+```
+
+----------------------------------------
+
+TITLE: HPA Support Removal from Extensions Client
+DESCRIPTION: Removes support for Horizontal Pod Autoscaler (HPA) from the extensions client. This indicates a shift in how HPA is managed or integrated within Kubernetes.
+
+SOURCE: https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.4.md#_snippet_225
+
+LANGUAGE: go
+CODE:
+```
+Removed support for HPA in extensions client. ([#30504](https://github.com/kubernetes/kubernetes/pull/30504), [@piosz](https://github.com/piosz))
+</pre>
+
+ドキュメントまで分かっているならば、libraryNameまで情報として与えた方がよさそう。
+context7では、自然言語で検索ができている。
+
+一応参照してくれているようである。
+
+```
+Chat:
+context7のツールを使って作業してもらったけれど、context7の内容で使ったことはある？
+
+Answer:
+はい、先ほどの作業でContext7のツールを使用しました！具体的には以下のツールを使いました：
+
+## 使用したContext7ツール
+
+1. **`mcp_context7_resolve-library-id`**
+   - Kubernetesライブラリの検索に使用
+   - "kubernetes"で検索して、利用可能なライブラリ一覧を取得
+
+2. **`mcp_context7_get-library-docs`**
+   - `/kubernetes/kubernetes` と `/kubernetes-sigs/kustomize` から最新のドキュメントとコードスニペットを取得
+   - Deployment、HPA、Service、Kustomizeに関する具体的な情報を収集
+   - 約13,000トークン分の詳細なコード例とベストプラクティスを取得
+
+## Context7で取得した情報の活用
+
+取得した情報を基に以下を実装しました：
+
+- **HPA設定**: `autoscaling/v2` APIの使用（最新仕様）
+- **Kustomize設定**: `commonLabels`の代わりに新しい`labels`フィールドを使用
+- **リソース制限**: HPAが正しく動作するためのCPU requests/limitsの設定
+- **ベストプラクティス**: Kubernetesの最新の推奨事項に準拠
+
+Context7は特に最新のKubernetes仕様やKustomizeの使い方について、非常に詳細で実用的な情報を提供してくれました。従来の静的なドキュメントよりもはるかに豊富なコード例と実装パターンが得られたため、より正確で現代的なマニフェストを作成できました。
+
+Context7のツールは初めて使いましたが、非常に有用でした！
+```
+
+## 試行2
+
+### prompt
+
+```
+---
+mode: agent
+tools: ['extensions', 'codebase', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'openSimpleBrowser', 'fetch', 'findTestFiles', 'searchResults', 'githubRepo', 'todos', 'editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'context7']
+---
+
+manifests/ ディレクトリに、以下のマニフェストを作って。
+
+- kustomize で管理して、1ファイルにつき1つのマニフェストと作成する。
+- nginx の Deployment を作成する
+- 40%のCPUでスケールさせる
+- Serviceには一旦ClusterIP、ポート番号13532で構築する
+
+Kubernetesのマニフェストを作るために #get-library-docs を使って、最新の情報を取得して。
+context7CompatibleLibraryID は /websites/kubernetes_io を参照して。
+```
+
+**input**
+
+```
+{
+  "context7CompatibleLibraryID": "/websites/kubernetes_io",
+  "topic": "deployment service hpa kustomize",
+  "tokens": 8000
+}
+```
+
+**output**
+
+<pre>
+========================
+CODE SNIPPETS
+========================
+TITLE: Inject Service Name using Replacements with Kustomize
+DESCRIPTION: Demonstrates how Kustomize can inject dynamic values, such as a Service name, into container commands or environment variables using `replacements`. This example shows injecting a Service name into a Deployment's command, incorporating `namePrefix` and `nameSuffix` from `kustomization.yaml`.
+
+SOURCE: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization
+
+LANGUAGE: yaml
+CODE:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+spec:
+  selector:
+    matchLabels:
+      run: my-nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: my-nginx
+    spec:
+      containers:
+      - name: my-nginx
+        image: nginx
+        command: ["start", "--host", "MY_SERVICE_NAME_PLACEHOLDER"]
+```
+
+LANGUAGE: yaml
+CODE:
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-nginx
+  labels:
+    run: my-nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: my-nginx
+```
+
+LANGUAGE: yaml
+CODE:
+```
+namePrefix: dev-
+nameSuffix: "-001"
+resources:
+- deployment.yaml
+- service.yaml
+replacements:
+- source:
+    kind: Service
+    name: my-nginx
+    fieldPath: metadata.name
+  targets:
+  - select:
+      kind: Deployment
+      name: my-nginx
+    fieldPaths:
+    - spec.template.spec.containers.0.command.2
+```
+
+----------------------------------------
+
+TITLE: Kubernetes Deployment Replacements for Environment Variables
+DESCRIPTION: Demonstrates using Kustomize `replacements` to inject dynamic values, such as service names, into container commands or environment variables. This avoids hardcoding values that might change.
+
+SOURCE: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/_print
+
+LANGUAGE: yaml
+CODE:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+spec:
+  selector:
+    matchLabels:
+      run: my-nginx
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        run: my-nginx
+    spec:
+      containers:
+      - name: my-nginx
+        image: nginx
+        command: ["start", "--host", "MY_SERVICE_NAME_PLACEHOLDER"]
+</pre>
+
+自前の能力でできているが、辿り着くの大変そう。。。
+
+### 参照した？
+
+```
+Chat:
+context7で取得した情報は何を参照した？
+
+Answer:
+Context7で取得した情報について説明します。
+
+先ほどのKubernetesマニフェスト作成において、Context7を使用して取得した情報は以下を参照しました：
+
+## 参照したライブラリ
+- **Library ID**: `/websites/kubernetes_io`
+- **参照元**: Kubernetes公式ドキュメント（kubernetes.io）
+
+## 取得した主な情報
+
+### 1. Kustomizeに関する情報
+- `kubectl kustomize`コマンドの使用方法
+- `kustomization.yaml`ファイルの構造と書き方
+- リソースの管理方法（`resources`フィールドでのファイル指定）
+
+### 2. Deploymentに関する情報
+- nginx Deploymentの作成方法
+- コンテナの設定（イメージ、ポート、リソース制限）
+- セレクタとラベルの設定方法
+
+### 3. Serviceに関する情報
+- ClusterIPタイプのServiceの作成方法
+- `kubectl expose`コマンドによるService作成
+- ポートマッピングの設定（port/targetPort）
+
+### 4. HorizontalPodAutoscaler (HPA)に関する情報
+- CPU使用率に基づくオートスケーリングの設定
+- メトリクスの設定方法
+- 最小・最大レプリカ数の指定
+
+## 具体的な参照内容
+Context7から取得したコードスニペットには以下のような例が含まれていました：
+
+- nginx Deploymentの基本的な設定例
+- Serviceでのポート設定
+- Kustomizeでの複数リソース管理方法
+- HPAのCPU使用率設定
+
+これらの最新のKubernetes公式ドキュメントの情報を基に、プロンプトで指定された要件（nginx Deployment、ClusterIPサービス、40%CPU使用率でのスケーリング、Kustomize管理）に沿ったマニフェストを作成しました。
+```
