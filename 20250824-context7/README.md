@@ -1,5 +1,7 @@
 # Context7
 
+https://github.com/upstash/context7
+
 upstash社が提供するMCP Server。バージョン管理された最新ドキュメントをMCPに与えることができる。
 
 - スニペットと、仕様を返す
